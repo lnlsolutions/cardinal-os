@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cardinal OS — Agency Operating System</title>
+<style>
+:root{
+--ink:#0D1622;--ink2:#1B2735;--side:#0B1220;--line:#E3E7EE;--bg:#F5F7FA;
+--blue:#1D5BD6;--blue2:#3B7BF0;--red:#C33E47;--green:#12805C;--amber:#B8791A;
+--muted:#6B7787;--white:#fff;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:13.5px;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:212px 1fr;height:100vh;overflow:hidden}
+.side{background:var(--side);color:#C9D3E0;display:flex;flex-direction:column;padding:18px 12px}
+.logo{display:flex;align-items:center;gap:9px;padding:0 8px 18px}
+.mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--blue2),#0B3C9E);display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
+.logo b{color:#fff;font-size:14px;letter-spacing:-.01em}
+.logo span{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#5D6B80;margin-top:1px}
+.navi{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.navi button{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:12.5px;color:#A9B6C8;text-align:left;width:100%}
+.navi button:hover{background:#16202F;color:#fff}
+.navi button.on{background:#16263D;color:#fff;box-shadow:inset 2px 0 0 var(--blue2)}
+.navi .ic{width:15px;text-align:center;opacity:.85;font-size:12px}
+.sidefoot{margin-top:auto;font-size:10.5px;color:#5D6B80;line-height:1.5;padding:10px 8px 0;border-top:1px solid #1B2735}
+.main{display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 20px;flex-shrink:0}
+.top h1{font-size:15.5px;letter-spacing:-.015em;font-weight:700}
+.top .sub{font-size:11.5px;color:var(--muted);margin-left:2px}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:250px}
+.search input{border:0;background:none;outline:none;width:100%;font-size:12.5px}
+.avatar{width:28px;height:28px;border-radius:50%;background:#E8EEF9;color:var(--blue);display:grid;place-items:center;font-weight:800;font-size:11px}
+.view{display:none;overflow-y:auto;padding:20px;flex:1}
+.view.on{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px}
+.card .lab{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card .val{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:5px;font-variant-numeric:tabular-nums}
+.card .delta{font-size:11px;margin-top:4px;color:var(--muted)}
+.card .delta.up{color:var(--green)}.card .delta.dn{color:var(--red)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;overflow:hidden}
+.panel .head{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}
+.panel .head h2{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.panel .head .spacer{flex:1}
+.panel .body{padding:14px 15px}
+.cols{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;align-items:start}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:0 10px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid #EEF1F6;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#FAFBFD}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 7px;border-radius:99px;background:#EDF2FB;color:var(--blue)}
+.chip.g{background:#E6F5EF;color:var(--green)}.chip.r{background:#FBEAEB;color:var(--red)}
+.chip.a{background:#FBF1DF;color:var(--amber)}.chip.n{background:#EEF1F6;color:#5A6675}
+.btn{background:var(--ink);color:#fff;border-radius:8px;padding:8px 13px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#182636}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.blue{background:var(--blue)}.btn.blue:hover{background:#1A50BC}
+.btn.sm{padding:5px 9px;font-size:11.5px;border-radius:7px}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:118px 1fr 62px;gap:9px;align-items:center;font-size:12px}
+.bar .track{height:8px;background:#EEF1F6;border-radius:99px;overflow:hidden}
+.bar .fill{height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue));border-radius:99px}
+.bar .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px}
+.drawer{position:fixed;top:0;right:0;height:100%;width:520px;background:#fff;border-left:1px solid var(--line);box-shadow:-20px 0 50px rgba(13,22,34,.14);transform:translateX(102%);transition:transform .22s ease;z-index:40;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer .dh{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.drawer .db{overflow-y:auto;padding:16px 18px;flex:1}
+.big-av{width:42px;height:42px;border-radius:50%;background:#E8EEF9;color:var(--blue);display:grid;place-items:center;font-weight:800;font-size:15px}
+.pol{background:#FBFCFF;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px}
+.pol .r1{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.pol .car{font-weight:700;font-size:12.5px}
+.pol .meta{font-size:11.5px;color:var(--muted);line-height:1.55}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.acts button{font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:4px 8px;background:#fff;color:var(--ink2)}
+.acts button:hover{border-color:var(--blue);color:var(--blue)}
+.modal{position:fixed;inset:0;background:rgba(13,22,34,.42);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.modal.open{display:flex}
+.sheet{background:#fff;border-radius:16px;width:560px;max-height:88vh;overflow-y:auto;padding:22px}
+.sheet h3{font-size:16px;letter-spacing:-.01em;margin-bottom:4px}
+.sheet .p{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;font-weight:700;margin-bottom:4px}
+.field input,.field select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;background:#FBFCFF}
+.quote{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #EEF1F6;font-size:12.5px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:80}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
+.note{background:#FBFCFF;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:8px;padding:11px 13px;font-size:12px;line-height:1.6;color:var(--ink2);margin-top:12px}
+.gate{position:fixed;inset:0;background:var(--side);display:flex;align-items:center;justify-content:center;z-index:100}
+.gate .box{background:#fff;border-radius:16px;padding:28px;width:330px}
+.gate h2{font-size:18px;margin-bottom:5px;letter-spacing:-.01em}
+.gate p{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}.drawer{width:100%}.app{grid-template-columns:64px 1fr}.logo b,.logo span,.navi button span:not(.ic),.sidefoot{display:none}}
+</style></head><body>
+<div class="gate" id="gate">
+  <div class="box">
+    <div class="mark" style="margin-bottom:12px">C</div>
+    <h2>Cardinal OS</h2>
+    <p>Demo environment. Enter the access code to continue.</p>
+    <div class="field"><input id="gateCode" type="password" placeholder="Access code" autocomplete="off"></div>
+    <button class="btn blue" style="width:100%;justify-content:center" onclick="unlock()">Unlock demo</button>
+    <p style="margin:12px 0 0;font-size:11px">All records are synthetic. No live client data is stored in this demo.</p>
+  </div>
+</div>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><div class="mark">C</div><div><b>Cardinal OS</b><span>Agency system</span></div></div>
+    <nav class="navi" id="nav">
+      <button data-v="dash" class="on"><span class="ic">▦</span><span>Dashboard</span></button>
+      <button data-v="clients"><span class="ic">◉</span><span>Clients</span></button>
+      <button data-v="quotes"><span class="ic">✎</span><span>Quotes</span></button>
+      <button data-v="policies"><span class="ic">▤</span><span>Policies</span></button>
+      <button data-v="tasks"><span class="ic">✓</span><span>Tasks</span></button>
+      <button data-v="campaigns"><span class="ic">↻</span><span>Campaigns</span></button>
+      <button data-v="growth"><span class="ic">◈</span><span>Growth</span></button>
+      <button data-v="sync"><span class="ic">⇄</span><span>Data sync</span></button>
+      <button data-v="security"><span class="ic">⛨</span><span>Security</span></button>
+    </nav>
+    <div class="sidefoot">Demo build · Nov 24, 2026<br>Synthetic data only</div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <h1 id="ttl">Dashboard</h1><span class="sub" id="sub">Book of business at a glance</span>
+      <div class="spacer"></div>
+      <div class="search"><span style="color:#8A96A6">⌕</span><input id="q" placeholder="Search clients, policies, carriers" oninput="quickSearch(this.value)"></div>
+      <div class="avatar">JC</div>
+    </header>
+    <section class="view on" id="v-dash">
+      <div class="cards" id="kpis"></div>
+      <div class="cols">
+        <div>
+          <div class="panel"><div class="head"><h2>Renewals at risk</h2><div class="spacer"></div><span class="chip a" id="riskChip">0 policies</span></div>
+            <div class="body" style="padding:0"><table><thead><tr><th>Client</th><th>Carrier</th><th>Renewal</th><th class="num">Premium</th><th></th></tr></thead><tbody id="riskBody"></tbody></table></div></div>
+          <div class="panel"><div class="head"><h2>Today's queue</h2><div class="spacer"></div><span class="chip n" id="taskChip">0 items</span></div>
+            <div class="body" style="padding:0"><table><thead><tr><th>Client</th><th>Reason</th><th>Owner</th><th></th></tr></thead><tbody id="queueBody"></tbody></table></div></div>
+        </div>
+        <div>
+          <div class="panel"><div class="head"><h2>Where the money goes</h2></div><div class="body"><div class="bars" id="spendBars"></div>
+            <div class="note" id="spendNote"></div></div></div>
+          <div class="panel"><div class="head"><h2>Leads by source</h2></div><div class="body"><div class="bars" id="leadBars"></div></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-clients">
+      <div class="panel"><div class="head"><h2>Clients</h2><div class="spacer"></div><span class="chip n" id="clientCount">0</span></div>
+        <div class="body" style="padding:0"><table><thead><tr><th>Client</th><th>Policies</th><th>Carriers</th><th class="num">Premium</th><th>Renewal</th><th>Status</th><th></th></tr></thead><tbody id="clientBody"></tbody></table></div></div>
+    </section>
+    <section class="view" id="v-quotes">
+      <div class="cols">
+        <div class="panel"><div class="head"><h2>New quote</h2></div><div class="body">
+          <div class="field"><label>Client or prospect</label><input id="qName" placeholder="Name"></div>
+          <div class="field"><label>Line of business</label><select id="qLine"><option>Auto</option><option>Home</option><option>Umbrella</option><option>Commercial Auto</option><option>General Liability</option><option>Workers Comp</option></select></div>
+          <div class="field"><label>Garaging ZIP</label><input id="qZip" value="85234"></div>
+          <div class="field"><label>Drivers or locations</label><input id="qN" type="number" value="2" min="1" max="8"></div>
+          <button class="btn blue" onclick="runQuote()">Rate across markets</button>
+          <div class="note">Rating is simulated against each carrier's appetite rules for demo purposes. In production this calls your rater and carrier APIs.</div>
+        </div></div>
+        <div class="panel"><div class="head"><h2>Market results</h2><div class="spacer"></div><span class="chip n" id="quoteChip">idle</span></div>
+          <div class="body" id="quoteResults"><div style="color:var(--muted);font-size:12.5px">Run a quote to see markets, premiums and bind options.</div></div></div>
+      </div>
+    </section>
+    <section class="view" id="v-policies">
+      <div class="cards" id="polKpis"></div>
+      <div class="panel"><div class="head"><h2>All policies</h2><div class="spacer"></div>
+        <select id="polFilter" onchange="renderPolicies()" style="border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff">
+          <option value="all">All</option><option value="30">Next 30 days</option><option value="60">Next 60 days</option><option value="90">Next 90 days</option><option value="lapse">Payment due</option></select></div>
+        <div class="body" style="padding:0"><table><thead><tr><th>Client</th><th>Carrier</th><th>Policy</th><th>Line</th><th>Eff.</th><th>Renewal</th><th class="num">Premium</th><th>Status</th><th></th></tr></thead><tbody id="polBody"></tbody></table></div></div>
+    </section>
+    <section class="view" id="v-tasks">
+      <div class="cols">
+        <div class="panel"><div class="head"><h2>Follow-up queue</h2><div class="spacer"></div><span class="chip n" id="taskCount">0</span></div>
+          <div class="body" style="padding:0"><table><thead><tr><th>Client</th><th>Task</th><th>Due</th><th>Owner</th><th></th></tr></thead><tbody id="taskBody"></tbody></table></div></div>
+        <div>
+          <div class="panel"><div class="head"><h2>Coverage while out</h2></div><div class="body">
+            <div class="field"><label>Who is out</label><select id="oooWho"></select></div>
+            <div class="field"><label>Covered by</label><select id="oooCover"></select></div>
+            <div class="field"><label>Until</label><input id="oooUntil" type="date" value="2026-12-05"></div>
+            <button class="btn blue" onclick="setCoverage()">Assign coverage</button>
+            <div id="oooState" style="margin-top:11px;font-size:12px;color:var(--muted)"></div>
+          </div></div>
+          <div class="panel"><div class="head"><h2>Activity log</h2></div><div class="body"><div id="log" style="font-size:11.5px;line-height:1.9;color:#4A5768"></div></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-campaigns">
+      <div class="panel"><div class="head"><h2>Automated sequences</h2><div class="spacer"></div><span class="chip g">running</span></div>
+        <div class="body" style="padding:0"><table><thead><tr><th>Sequence</th><th>Trigger</th><th>Steps</th><th class="num">Enrolled</th><th class="num">Sent 30d</th><th>Status</th><th></th></tr></thead><tbody id="campBody"></tbody></table></div></div>
+      <div class="cols" style="margin-top:14px">
+        <div class="panel"><div class="head"><h2>Sequence detail</h2><div class="spacer"></div><span class="chip n" id="campName">select one</span></div><div class="body" id="campDetail"><div style="color:var(--muted);font-size:12.5px">Pick a sequence to see its steps and copy.</div></div></div>
+        <div class="panel"><div class="head"><h2>Lifecycle triggers</h2></div><div class="body" id="lifecycle"></div></div>
+      </div>
+    </section>
+    <section class="view" id="v-growth">
+      <div class="cards" id="growthKpis"></div>
+      <div class="cols">
+        <div class="panel"><div class="head"><h2>Spend and return by channel</h2></div><div class="body" style="padding:0"><table><thead><tr><th>Channel</th><th class="num">Spend</th><th class="num">Leads</th><th class="num">CPL</th><th class="num">Quotes</th><th class="num">Bound</th><th class="num">Cost / policy</th></tr></thead><tbody id="chanBody"></tbody></table></div></div>
+        <div class="panel"><div class="head"><h2>Lead flow</h2></div><div class="body"><div class="bars" id="flowBars"></div>
+          <div class="note">Speed to first contact is the number that moves close rate. Anything over 5 minutes gets an alert.</div></div></div>
+      </div>
+      <div class="panel"><div class="head"><h2>Where leads come from, by ZIP</h2></div><div class="body"><div class="bars" id="zipBars"></div></div></div>
+    </section>
+    <section class="view" id="v-sync">
+      <div class="cols">
+        <div class="panel"><div class="head"><h2>EZLynx connection</h2><div class="spacer"></div><span class="chip g">connected</span></div><div class="body">
+          <div class="pol"><div class="r1"><span class="car">EZLynx</span><span class="chip g">source of record</span></div>
+            <div class="meta">Policy and client data pull only. Cardinal keeps EZLynx for rating and carrier appointments. Last sync 8:04am, 593 policies, 0 errors.</div>
+            <div class="acts"><button onclick="syncNow()">Pull now</button><button onclick="toast('Field mapping opened')">Field mapping</button><button onclick="toast('Export queued')">Export book</button></div></div>
+          <div class="pol"><div class="r1"><span class="car">Carrier portals</span><span class="chip a">12 markets</span></div>
+            <div class="meta">Policy detail, ID cards and declarations pages pulled per client, from the carrier that insures them. Credentials sealed in the vault, never in the browser.</div>
+            <div class="acts"><button onclick="toast('Vault opened')">Manage connections</button></div></div>
+          <div class="pol"><div class="r1"><span class="car">Website and lead forms</span><span class="chip g">live</span></div>
+            <div class="meta">Form fills, quote starts and calls land in the CRM within seconds, tagged with source and campaign.</div></div>
+          <div class="note">Production path: API or approved rater bridge per carrier. Stored logins are not permission, and portals break when a carrier adds MFA. We build outward from the markets that grant access.</div>
+        </div></div>
+        <div class="panel"><div class="head"><h2>Sync activity</h2></div><div class="body"><div id="syncLog" class="mono" style="line-height:1.9;color:#4A5768"></div></div></div>
+      </div>
+    </section>
+    <section class="view" id="v-security">
+      <div class="panel"><div class="head"><h2>How this stays safe</h2><div class="spacer"></div><span class="chip a">demo</span></div><div class="body" id="secBody"></div></div>
+    </section>
+  </div>
+</div>
+<div class="drawer" id="drawer"><div class="dh" id="dh"></div><div class="db" id="db"></div></div>
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const CODE='cardinal2026';
+const CAR=[['Travelers','api'],['Progressive','api'],['Safeco','api'],['Nationwide','api'],['Stillwater','api'],['Openly','api'],['Chubb','api'],['The Hartford','rater'],['Foremost','portal'],['Mercury','portal'],['Bristol West','portal'],['GAINSCO','portal']];
+const LINES=['Auto','Home','Umbrella','Commercial Auto','General Liability','Workers Comp','BOP','Renters','Life'];
+const FIRST=['Jill','Marcus','Elena','Dwayne','Priya','Tom','Rosa','Caleb','Nina','Andre','Sofia','Grant','Yvonne','Hector','Lena','Owen','Tanya','Reggie'];
+const LAST=['Nakamura','Whitfield','Ortiz','Brennan','Raman','Delgado','Kowalski','Mercer','Haddad','Boateng','Salazar','Pierce','Okafor','Villanueva','Sorensen','Duffy','Ferraro','Lindqvist'];
+const STREET=['S Gilbert Rd','E Baseline Rd','N Val Vista Dr','E Williams Field Rd','S Higley Rd','E Guadalupe Rd','N Lindsay Rd','E Pecos Rd','S Power Rd','E Warner Rd'];
+const CITY=[['Gilbert','85234'],['Mesa','85205'],['Chandler','85225'],['Higley','85236'],['Queen Creek','85142'],['Scottsdale','85254'],['Tempe','85281'],['Apache Junction','85120']];
+const PROD=['Jacobo M.','Dana R.','Steve L.','Kayla B.'];
+function rnd(n){return Math.floor(Math.random()*n)}
+function pick(a){return a[rnd(a.length)]}
+function money(n){return '$'+n.toLocaleString('en-US',{maximumFractionDigits:0})}
+function d2(d){return d.toISOString().slice(0,10)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+const TODAY=new Date('2026-11-24T12:00:00');
+let CLIENTS=[],POLICIES=[],TASKS=[],LOGS=[],OOO=null;
+function seed(){
+  const r=[[],[],[],[],[],[]];
+  for(let i=0;i<24;i++){
+    const f=FIRST[i%FIRST.length],l=LAST[(i*3)%LAST.length];
+    const c=pick(CITY);
+    const cl={id:'C'+(1001+i),name:f+' '+l,email:(f+'.'+l[0]+'@example.com').toLowerCase(),phone:'(480) 5'+String(10+i)+'-'+String(1000+i*7),street:(100+i*13)+' '+pick(STREET),city:c[0],zip:c[1],since:2019+rnd(6),owner:PROD[i%4],dob:(1+rnd(12))+'-'+(1+rnd(27)),policies:[],status:'active'};
+    CLIENTS.push(cl);
+  }
+}
+seed();
+(function buildPolicies(){
+  let n=1;
+  CLIENTS.forEach((c,i)=>{
+    const count=1+(i%3);
+    for(let k=0;k<count;k++){
+      const car=pick(CAR);
+      const line=LINES[(i+k)%LINES.length];
+      const base=line==='Auto'?1180:line==='Home'?1640:line==='Umbrella'?320:line==='Commercial Auto'?3480:line==='General Liability'?2250:line==='Workers Comp'?4100:line==='BOP'?1860:line==='Renters'?280:940;
+      const prem=base+rnd(9)*70;
+      const eff=addDays(TODAY,-(60+rnd(300)));
+      const ren=addDays(TODAY,(i%9===0?6+rnd(14):20+rnd(240)));
+      const payDue=rnd(7)===0;
+      const p={id:'P'+(4200+n),clientId:c.id,carrier:car[0],conn:car[1],policy:'AZ-'+car[0].slice(0,2).toUpperCase()+'-'+String(700000+n*37),line,eff:d2(eff),renewal:d2(ren),premium:prem,status:payDue?'payment due':'active',payDue,daysOut:Math.round((ren-TODAY)/86400000)};
+      POLICIES.push(p);c.policies.push(p.id);n++;
+    }
+  });
+})();
+const SPEND=[
+ {ch:'Google Ads',spend:2400,leads:38,quotes:21,bound:9},
+ {ch:'Meta',spend:1800,leads:44,quotes:17,bound:6},
+ {ch:'Local Services',spend:1100,leads:19,quotes:12,bound:7},
+ {ch:'Website / SEO',spend:900,leads:16,quotes:9,bound:4},
+ {ch:'Referral',spend:300,leads:12,quotes:10,bound:6}
+];
+const CAMPS=[
+ {name:'New lead nurture',trig:'Lead created, no quote in 24h',steps:5,enrolled:34,sent:186,status:'running',detail:['D0 · SMS · "Thanks for reaching out, here is what happens next"','D1 · Email · Carrier comparison explainer','D3 · Call task · producer assigned','D7 · Email · proof and reviews','D14 · SMS · last call, book a 10 minute call']},
+ {name:'Quote follow-up',trig:'Quote issued, not bound in 48h',steps:4,enrolled:19,sent:112,status:'running',detail:['D0 · Email · quote summary PDF','D2 · SMS · any questions on the numbers','D5 · Call task · review coverage gaps','D9 · Email · rate change window closes']},
+ {name:'Renewal save',trig:'Renewal 45 days out, premium up >10%',steps:4,enrolled:27,sent:98,status:'running',detail:['D-45 · Email · renewal summary','D-30 · Call task · re-shop and compare','D-14 · SMS · confirm no lapse','D-7 · Email · payment options']},
+ {name:'Payment reminder',trig:'Balance due within 5 days',steps:3,enrolled:11,sent:41,status:'running',detail:['D-5 · SMS · amount and pay link','D-1 · SMS · reminder','D+1 · Call task · lapse risk, reinstate']},
+ {name:'Birthday',trig:'Client date of birth',steps:1,enrolled:24,sent:24,status:'running',detail:['D0 · SMS · short personal note from the producer, no pitch']},
+ {name:'Cross-sell gap',trig:'Auto only, no home policy',steps:3,enrolled:31,sent:87,status:'running',detail:['D0 · Email · bundle savings estimate','D4 · SMS · 2 minute bundle quote','D10 · Call task · producer follow-up']}
+];
+(function buildTasks(){
+  const reasons=['Renewal 12 days out, premium up 14%','Quote sent 3 days ago, no reply','Payment failed, card on file expired','Auto only, bundle quote not offered','Claim follow-up, adjuster has not called','New lead, first contact overdue 2h','Annual review due','ID card requested, send today'];
+  for(let i=0;i<9;i++){
+    const c=CLIENTS[i*2%CLIENTS.length];
+    TASKS.push({id:'T'+(300+i),clientId:c.id,reason:reasons[i%reasons.length],owner:c.owner,due:i<4?'today':i<7?'tomorrow':'this week',done:false,pri:i<4?'high':'normal'});
+  }
+  LOGS.push({t:'08:04',m:'EZLynx sync completed, 593 policies, 0 errors'});
+  LOGS.push({t:'08:06',m:'Payment reminder sequence sent 4 texts'});
+  LOGS.push({t:'08:11',m:'Jacobo logged in from Gilbert office'});
+})();
+const NAV={dash:['Dashboard','Book of business at a glance'],clients:['Clients','One record per household and business'],quotes:['Quotes','Rate across markets, bind without leaving'],policies:['Policies','Renewals, payments and documents'],tasks:['Tasks','Who does what, and who covers'],campaigns:['Campaigns','Sequences that run without being remembered'],growth:['Growth','Where the money goes and what it returns'],sync:['Data sync','EZLintx, carriers and the website'],security:['Security','How client data is protected']};
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1900)}
+function unlock(){
+  const v=document.getElementById('gateCode').value.trim().toLowerCase();
+  if(v===CODE){document.getElementById('gate').remove();}
+  else{toast('That code is not right');}
+}
+document.getElementById('gateCode').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+function go(v){
+  document.getElementById('drawer').classList.remove('open');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.getElementById('ttl').textContent=NAV[v][0];
+  document.getElementById('sub').textContent=NAV[v][1];
+  if(v==='policies')renderPolicies();
+  if(v==='tasks')renderTasks();
+}
+function polsOf(id){return POLICIES.filter(p=>p.clientId===id)}
+function premOf(id){return polsOf(id).reduce((s,p)=>s+p.premium,0)}
+function byId(id){return CLIENTS.find(c=>c.id===id)}
+function renderDash(){
+  const total=POLICIES.reduce((s,p)=>s+p.premium,0);
+  const soon=POLICIES.filter(p=>p.daysOut<=60).length;
+  const due=POLICIES.filter(p=>p.payDue).length;
+  const k=[['Book of business',money(total),POLICIES.length+' policies · '+CLIENTS.length+' clients','up'],['Renewals next 30 days',POLICIES.filter(p=>p.daysOut<=30).length,money(POLICIES.filter(p=>p.daysOut<=30).reduce((s,p)=>s+p.premium,0))+' in premium',''],['Payments due',due,due?'lapse risk if unpaid':'all current',due?'dn':'up'],['Open tasks',TASKS.filter(t=>!t.done).length,'4 due today','']];
+  document.getElementById('kpis').innerHTML=k.map(x=>`<div class="card"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="delta ${x[3]}">${x[2]}</div></div>`).join('');
+  const risk=POLICIES.filter(p=>p.daysOut<=30).sort((a,b)=>a.daysOut-b.daysOut).slice(0,6);
+  document.getElementById('riskChip').textContent=risk.length+' policies';
+  document.getElementById('riskBody').innerHTML=risk.map(p=>{const c=byId(p.clientId);return `<tr><td><b>${c.name}</b></td><td>${p.carrier}</td><td><span class="chip ${p.daysOut<15?'r':'a'}">${p.daysOut} days</span></td><td class="num">${money(p.premium)}</td><td><button class="btn sm ghost" onclick="openClient('${c.id}')">Open</button></td></tr>`}).join('');
+  const q=TASKS.filter(t=>!t.done).slice(0,5);
+  document.getElementById('taskChip').textContent=q.length+' items';
+  document.getElementById('queueBody').innerHTML=q.map(t=>{const c=byId(t.clientId);return `<tr><td><b>${c.name}</b></td><td style="color:#4A5768">${t.reason}</td><td>${t.owner}</td><td><button class="btn sm ghost" onclick="openClient('${c.id}')">Open</button></td></tr>`}).join('');
+  const tot=SPEND.reduce((s,x)=>s+x.spend,0);
+  document.getElementById('spendBars').innerHTML=SPEND.map(x=>`<div class="bar"><span>${x.ch}</span><div class="track"><div class="fill" style="width:${Math.round(x.spend/tot*100)}%"></div></div><span class="n">${money(x.spend)}</span></div>`).join('');
+  const bound=SPEND.reduce((s,x)=>s+x.bound,0);
+  document.getElementById('spendNote').innerHTML=`<b>${money(tot)}</b> this month across five channels, <b>${bound} policies bound</b>, blended cost per policy <b>${money(Math.round(tot/bound))}</b>. Local Services is the cheapest booked policy at ${money(Math.round(1100/7))}.`;
+  const leads=SPEND.map(x=>[x.ch,x.leads]).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('leadBars').innerHTML=leads.map(x=>`<div class="bar"><span>${x[0]}</span><div class="track"><div class="fill" style="width:${Math.round(x[1]/leads[0][1]*100)}%"></div></div><span class="n">${x[1]}</span></div>`).join('');
+}
+function renderClients(){
+  document.getElementById('clientCount').textContent=CLIENTS.length+' clients';
+  document.getElementById('clientBody').innerHTML=CLIENTS.map(c=>{
+    const ps=polsOf(c.id);
+    const next=ps.slice().sort((a,b)=>a.daysOut-b.daysOut)[0];
+    const cars=[...new Set(ps.map(p=>p.carrier))];
+    return `<tr><td><b>${c.name}</b><div style="font-size:11px;color:var(--muted)">${c.city}, ${c.zip}</div></td>
+    <td>${ps.length}</td><td style="font-size:11.5px;color:#4A5768">${cars.join(', ')}</td>
+    <td class="num">${money(premOf(c.id))}</td>
+    <td>${next?`<span class="chip ${next.daysOut<20?'a':'n'}">${next.daysOut} days</span>`:'—'}</td>
+    <td><span class="chip ${ps.some(p=>p.payDue)?'r':'g'}">${ps.some(p=>p.payDue)?'payment due':'current'}</span></td>
+    <td><button class="btn sm ghost" onclick="openClient('${c.id}')">Open</button></td></tr>`}).join('');
+}
+function openClient(id){
+  const c=byId(id), ps=polsOf(id);
+  document.getElementById('dh').innerHTML=`<div class="big-av">${c.name.split(' ').map(x=>x[0]).join('')}</div>
+  <div style="flex:1"><div style="font-size:15px;font-weight:700">${c.name}</div>
+  <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${c.street} · ${c.city}, AZ ${c.zip}</div>
+  <div style="font-size:11.5px;color:var(--muted)">${c.phone} · ${c.email}</div></div>
+  <button class="btn sm ghost" onclick="closeDrawer()">Close</button>`;
+  const pols=ps.map(p=>`<div class="pol"><div class="r1"><span class="car">${p.carrier}</span><span class="chip ${p.payDue?'r':'g'}">${p.status}</span><span class="chip n">${p.conn}</span></div>
+  <div class="meta">${p.line} · ${p.policy}<br>Renews ${p.renewal} (${p.daysOut} days) · ${money(p.premium)}/yr</div>
+  <div class="acts"><button onclick="idCard('${p.id}')">ID card</button><button onclick="coi('${p.id}')">Certificate</button><button onclick="toast('Pulled from ${p.carrier}')">Pull from carrier</button><button onclick="payNow('${p.id}')">Pay / autopay</button><button onclick="toast('Declarations page downloaded')">Dec page</button></div></div>`).join('');
+  document.getElementById('db').innerHTML=`
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn sm blue" onclick="openQuoteFor('${c.id}')">New quote</button>
+    <button class="btn sm ghost" onclick="addTask('${c.id}')">Add task</button>
+    <button class="btn sm ghost" onclick="toast('Email drafted to ${c.email}')">Email</button>
+    <button class="btn sm ghost" onclick="toast('Text queued')">Text</button>
+  </div>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px">Policies · ${money(premOf(id))} annual premium</div>
+  ${pols}
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Next actions</div>
+  <div class="pol" style="background:#fff"><div class="meta">Renewal call ${ps[0]?ps[0].daysOut:0} days out · annual review scheduled · birthday ${c.dob}</div>
+  <div class="acts"><button onclick="toast('Renewal task created')">Create renewal task</button><button onclick="toast('Review booked')">Book review</button></div></div>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Timeline</div>
+  <div style="font-size:11.5px;line-height:1.95;color:#4A5768">
+  Today · Producer ${c.owner} opened record<br>
+  Nov 20 · Payment reminder sent, card updated<br>
+  Nov 12 · Renewal re-shop completed, ${ps.length} policy${ps.length>1?'ies':''} retained<br>
+  Client since ${c.since}</div>`;
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+function idCard(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  document.getElementById('sheet').innerHTML=`<h3>Auto ID card</h3><p class="p">${p.carrier} · ${p.policy}</p>
+  <div style="border:1px solid var(--line);border-radius:10px;padding:14px;background:#FBFCFF">
+    <div style="font-weight:800;font-size:13px;letter-spacing:.06em;color:var(--blue)">${p.carrier.toUpperCase()}</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">Arizona · ${p.line}</div>
+    <div style="font-size:12.5px;line-height:1.8"><b>${c.name}</b><br>${c.street}<br>${c.city}, AZ ${c.zip}<br>
+    Policy ${p.policy}<br>Effective ${p.eff} · Expires ${p.renewal}</div></div>
+  <div style="display:flex;gap:8px;margin-top:14px"><button class="btn blue" onclick="toast('ID card downloaded as PNG')">Download</button>
+  <button class="btn ghost" onclick="toast('Emailed to ${c.email}')">Email to client</button>
+  <button class="btn ghost" onclick="closeModal()">Close</button></div>`;
+  document.getElementById('modal').classList.add('open');
+}
+function coi(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  document.getElementById('sheet').innerHTML=`<h3>Certificate of insurance</h3><p class="p">Generated from ${p.carrier} policy data, ready to send to a lender, landlord or vendor.</p>
+  <div class="field"><label>Certificate holder</label><input value="Desert Ridge Property Management"></div>
+  <div class="field"><label>Additional insured</label><select><option>Yes, include</option><option>No</option></select></div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0">${c.name} · ${p.line} · ${p.carrier} · ${p.policy} · limits per policy schedule</div>
+  <div style="display:flex;gap:8px"><button class="btn blue" onclick="toast('Certificate generated and queued to send')">Generate certificate</button>
+  <button class="btn ghost" onclick="closeModal()">Close</button></div>`;
+  document.getElementById('modal').classList.add('open');
+}
+function payNow(pid){
+  const p=POLICIES.find(x=>x.id===pid);
+  p.payDue=false;p.status='active';renderDash();renderPolicies();
+  toast('Payment link sent · '+money(p.premium/12)+' monthly');
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Payment link sent for '+p.policy});
+}
+function addTask(cid){
+  const c=byId(cid);
+  TASKS.unshift({id:'T'+Math.floor(Math.random()*9999),clientId:cid,reason:'Manual follow-up added by producer',owner:c.owner,due:'today',done:false,pri:'normal'});
+  renderDash();renderTasks();toast('Task added for '+c.owner);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function quickSearch(v){
+  if(!v||v.length<2)return;
+  const hit=CLIENTS.find(c=>c.name.toLowerCase().includes(v.toLowerCase()));
+  if(hit)openClient(hit.id);
+}
+function openQuoteFor(cid){
+  const c=byId(cid);
+  document.getElementById('qName').value=c.name;
+  go('quotes');closeDrawer();
+}
+function runQuote(){
+  const name=document.getElementById('qName').value||'Prospect';
+  const line=document.getElementById('qLine').value;
+  const n=parseInt(document.getElementById('qN').value||2,10);
+  document.getElementById('quoteChip').textContent='rating';
+  const base=line==='Auto'?1180:line==='Home'?1640:line==='Umbrella'?320:line==='Commercial Auto'?3480:line==='General Liability'?2250:line==='Workers Comp'?4100:line==='BOP'?1860:line==='Renters'?280:940;
+  const markets=CAR.filter(c=>c[0]!=='GAINSCO').slice(0,7).map(c=>{
+    const f=0.82+Math.random()*0.55;
+    return {car:c[0],conn:c[1],prem:Math.round(base*n/2*f)};
+  }).sort((a,b)=>a.prem-b.prem);
+  setTimeout(()=>{
+    document.getElementById('quoteChip').textContent=markets.length+' markets';
+    document.getElementById('quoteResults').innerHTML=markets.map((m,i)=>`
+      <div class="quote"><div><b>${m.car}</b><div style="font-size:11px;color:var(--muted)">${m.conn} · ${line} · ${n} ${line==='Home'?'locations':'drivers'}</div></div>
+      <div style="text-align:right"><b>${money(m.prem)}</b>/yr<div style="font-size:11px;color:var(--muted)">${money(Math.round(m.prem/12))}/mo</div></div>
+      <button class="btn sm ${i===0?'blue':'ghost'}" onclick="bind('${m.car}','${name.replace(/'/g,'')}',${m.prem},'${line}')">${i===0?'Bind':'Select'}</button></div>`).join('')
+      +`<div class="note">Best rate ${markets[0].car} at ${money(markets[0].prem)}, ${money(markets[0].prem-markets[markets.length-1].prem)} below the highest market. Quote valid 30 days.</div>`;
+  },420);
+}
+function bind(car,name,prem,line){
+  const c=CLIENTS.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(c){
+    const p={id:'P'+Math.floor(Math.random()*9000+1000),clientId:c.id,carrier:car,conn:'api',policy:'AZ-'+car.slice(0,2).toUpperCase()+'-'+Math.floor(Math.random()*900000+100000),line,eff:d2(TODAY),renewal:d2(addDays(TODAY,365)),premium:prem,status:'active',payDue:false,daysOut:365};
+    POLICIES.push(p);c.policies.push(p.id);renderClients();renderDash();renderPolicies();
+  }
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Bound '+line+' with '+car+' at '+money(prem)});
+  toast('Bound with '+car+' · policy issued · ID card available');
+}
+function renderPolicies(){
+  const f=document.getElementById('polFilter').value;
+  let rows=POLICIES.slice();
+  if(f==='lapse')rows=rows.filter(p=>p.payDue);
+  else if(f!=='all')rows=rows.filter(p=>p.daysOut<=parseInt(f,10));
+  rows.sort((a,b)=>a.daysOut-b.daysOut);
+  document.getElementById('polBody').innerHTML=rows.slice(0,40).map(p=>{const c=byId(p.clientId);return `<tr>
+    <td><b>${c.name}</b></td><td>${p.carrier}</td><td class="mono">${p.policy}</td><td>${p.line}</td><td>${p.eff}</td>
+    <td>${p.renewal}</td><td class="num">${money(p.premium)}</td>
+    <td><span class="chip ${p.payDue?'r':'g'}">${p.status}</span></td>
+    <td><button class="btn sm ghost" onclick="openClient('${c.id}')">Open</button></td></tr>`}).join('');
+  const k=[['Total policies',POLICIES.length,'across '+new Set(POLICIES.map(p=>p.carrier)).size+' carriers',''],['Annual premium',money(POLICIES.reduce((s,p)=>s+p.premium,0)),'in force today','up'],['Renewing in 30 days',POLICIES.filter(p=>p.daysOut<=30).length,'needs a call this week',''],['Payment due',POLICIES.filter(p=>p.payDue).length,'lapse risk','dn']];
+  document.getElementById('polKpis').innerHTML=k.map(x=>`<div class="card"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="delta ${x[3]}">${x[2]}</div></div>`).join('');
+}
+function renderTasks(){
+  document.getElementById('taskCount').textContent=TASKS.filter(t=>!t.done).length+' open';
+  document.getElementById('taskBody').innerHTML=TASKS.filter(t=>!t.done).map(t=>{const c=byId(t.clientId);
+    return `<tr><td><b>${c.name}</b></td><td style="color:#4A5768">${t.reason}</td>
+    <td><span class="chip ${t.due==='today'?'r':'n'}">${t.due}</span></td><td>${t.owner}</td>
+    <td><button class="btn sm ghost" onclick="doneTask('${t.id}')">Done</button></td></tr>`}).join('')
+    ||'<tr><td colspan="5" style="color:var(--muted)">Queue clear.</td></tr>';
+  const who=document.getElementById('oooWho');
+  if(!who.options.length){PROD.forEach(p=>{who.add(new Option(p,p));document.getElementById('oooCover').add(new Option(p,p))})}
+  document.getElementById('oooState').innerHTML=OOO?`<b>${OOO.who}</b> is out until ${OOO.until}. Open items reassigned to <b>${OOO.cover}</b>.`: 'No coverage set.';
+  document.getElementById('log').innerHTML=LOGS.map(l=>`<div><span style="color:#9AA5B4">${l.t}</span> · ${l.m}</div>`).join('');
+}
+function doneTask(id){
+  const t=TASKS.find(x=>x.id===id);t.done=true;
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Task completed for '+byId(t.clientId).name});
+  renderTasks();renderDash();toast('Task closed');
+}
+function setCoverage(){
+  const who=document.getElementById('oooWho').value, cover=document.getElementById('oooCover').value, until=document.getElementById('oooUntil').value;
+  OOO={who,cover,until};
+  TASKS.filter(t=>!t.done&&t.owner===who).forEach(t=>t.owner=cover);
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:who+' marked out, book covered by '+cover});
+  renderTasks();toast(who+' covered by '+cover+' until '+until);
+}
+function renderCampaigns(){
+  document.getElementById('campBody').innerHTML=CAMPS.map((c,i)=>`<tr>
+    <td><b>${c.name}</b></td><td style="color:#4A5768">${c.trig}</td><td>${c.steps}</td>
+    <td class="num">${c.enrolled}</td><td class="num">${c.sent}</td>
+    <td><span class="chip g">${c.status}</span></td>
+    <td><button class="btn sm ghost" onclick="showCamp(${i})">View</button></td></tr>`).join('');
+  document.getElementById('lifecycle').innerHTML=['Lead created','Quote issued','Policy bound','Renewal 45 days out','Payment due','Birthday','Claim opened','Lapse risk']
+    .map(x=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EEF1F6;font-size:12.5px"><span>${x}</span><span class="chip g">active</span></div>`).join('');
+}
+function showCamp(i){
+  const c=CAMPS[i];
+  document.getElementById('campName').textContent=c.name;
+  document.getElementById('campDetail').innerHTML=c.detail.map(s=>`<div style="padding:8px 0;border-bottom:1px solid #EEF1F6;font-size:12.5px">${s}</div>`).join('')
+   +`<div class="note">${c.enrolled} enrolled, ${c.sent} touches sent in 30 days. Replies route to the assigned producer as a task, not a dead inbox.</div>`;
+}
+function renderGrowth(){
+  const tot=SPEND.reduce((s,x)=>s+x.spend,0);
+  const leads=SPEND.reduce((s,x)=>s+x.leads,0);
+  const bound=SPEND.reduce((s,x)=>s+x.bound,0);
+  const k=[['Ad spend, month',money(tot),'five channels',''],['Leads captured',leads,'blended CPL '+money(Math.round(tot/leads)),'up'],['Quotes issued',SPEND.reduce((s,x)=>s+x.quotes,0),'quote rate '+Math.round(SPEND.reduce((s,x)=>s+x.quotes,0)/leads*100)+'%',''],['Policies bound',bound,'cost per policy '+money(Math.round(tot/bound)),'up']];
+  document.getElementById('growthKpis').innerHTML=k.map(x=>`<div class="card"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="delta ${x[3]}">${x[2]}</div></div>`).join('');
+  document.getElementById('chanBody').innerHTML=SPEND.map(x=>`<tr><td><b>${x.ch}</b></td><td class="num">${money(x.spend)}</td><td class="num">${x.leads}</td>
+    <td class="num">${money(Math.round(x.spend/x.leads))}</td><td class="num">${x.quotes}</td><td class="num">${x.bound}</td>
+    <td class="num">${money(Math.round(x.spend/x.bound))}</td></tr>`).join('');
+  const flow=[['Leads',leads],['Contacted',Math.round(leads*.86)],['Quoted',SPEND.reduce((s,x)=>s+x.quotes,0)],['Bound',bound]];
+  document.getElementById('flowBars').innerHTML=flow.map(f=>`<div class="bar"><span>${f[0]}</span><div class="track"><div class="fill" style="width:${Math.round(f[1]/leads*100)}%"></div></div><span class="n">${f[1]}</span></div>`).join('');
+  const zip=[['85234 Gilbert',22],['85205 Mesa',17],['85225 Chandler',14],['85236 Higley',11],['85142 Queen Creek',9],['85254 Scottsdale',6]];
+  document.getElementById('zipBars').innerHTML=zip.map(z=>`<div class="bar"><span>${z[0]}</span><div class="track"><div class="fill" style="width:${Math.round(z[1]/22*100)}%"></div></div><span class="n">${z[1]}</span></div>`).join('');
+}
+function syncNow(){
+  const el=document.getElementById('syncLog');
+  const steps=['Connecting to EZLynx…','Authenticating agency token…','Pulling 593 policies…','Mapping carrier fields…','Reconciling renewals…','Done. 0 errors, 4 new renewals flagged.'];
+  el.innerHTML='';
+  steps.forEach((s,i)=>setTimeout(()=>{el.innerHTML+=`<div><span style="color:#9AA5B4">${new Date().toTimeString().slice(0,5)}</span> ${s}</div>`;if(i===steps.length-1){LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Manual EZLynx pull completed'});toast('Sync complete · 593 policies');}},i*380));
+}
+function renderSecurity(){
+  const rows=[['Synthetic data','Every client, policy and premium in this demo is generated. No real policyholder data is present.'],
+  ['No credentials in the browser','Carrier and rater credentials live in an encrypted server-side vault. The browser only ever receives data, never logins.'],
+  ['Tenant isolation','Each agency gets its own data partition. White-label deployments do not share records or indexes.'],
+  ['Role-based access','Owner, producer, CSR and read-only roles. Commission and producer performance are hidden from roles that should not see them.'],
+  ['Audit trail','Every record view, export, quote and bind is written to an immutable log with user, time and IP.'],
+  ['Encryption','TLS in transit, AES-256 at rest, field-level encryption on SSNs, dates of birth and driver licence numbers.'],
+  ['Data handling','PII retention rules, export controls, and a deletion path that satisfies state insurance privacy requirements.'],
+  ['Production path','SOC 2 aligned controls, penetration test before white-label launch, and carrier API or rater agreements before automated pulls.']];
+  document.getElementById('secBody').innerHTML=rows.map(r=>`<div style="display:grid;grid-template-columns:200px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid #EEF1F6"><b style="font-size:12.5px">${r[0]}</b><span style="font-size:12.5px;color:#4A5768;line-height:1.6">${r[1]}</span></div>`).join('')
+   +`<div class="note">This build is a simulation for the meeting. The security model above is what the production deployment implements, and it is the section to walk through with any agency that asks about white-labeling.</div>`;
+}
+renderDash();renderClients();renderPolicies();renderTasks();renderCampaigns();renderGrowth();renderSecurity();
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+</script></body></html>
