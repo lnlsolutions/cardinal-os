@@ -358,7 +358,7 @@ function openClient(id){
   <button class="btn sm ghost" onclick="closeDrawer()">Close</button>`;
   const pols=ps.map(p=>`<div class="pol"><div class="r1"><span class="car">${p.carrier}</span><span class="chip ${p.payDue?'r':'g'}">${p.status}</span><span class="chip n">${p.conn}</span></div>
   <div class="meta">${p.line} · ${p.policy}<br>Renews ${p.renewal} (${p.daysOut} days) · ${money(p.premium)}/yr</div>
-  <div class="acts"><button onclick="idCard('${p.id}')">ID card</button><button onclick="coi('${p.id}')">Certificate</button><button onclick="toast('Pulled from ${p.carrier}')">Pull from carrier</button><button onclick="payNow('${p.id}')">Pay / autopay</button><button onclick="toast('Declarations page downloaded')">Dec page</button></div></div>`).join('');
+  <div class="acts"><button onclick="idCard('${p.id}')">ID card</button><button onclick="coi('${p.id}')">Certificate</button><button onclick="carrierLogin('${p.id}')" style="border-color:#1D5BD6;color:#1D5BD6;font-weight:700">${p.conn==='api'?'Pull (API)':'Carrier login'}</button><button onclick="payNow('${p.id}')">Pay / autopay</button><button onclick="toast('Declarations page downloaded')">Dec page</button></div></div>`).join('');
   document.getElementById('db').innerHTML=`
   <div style="display:flex;gap:8px;margin-bottom:14px">
     <button class="btn sm blue" onclick="openQuoteFor('${c.id}')">New quote</button>
@@ -538,6 +538,78 @@ function renderSecurity(){
   document.getElementById('secBody').innerHTML=rows.map(r=>`<div style="display:grid;grid-template-columns:200px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid #EEF1F6"><b style="font-size:12.5px">${r[0]}</b><span style="font-size:12.5px;color:#4A5768;line-height:1.6">${r[1]}</span></div>`).join('')
    +`<div class="note">This build is a simulation for the meeting. The security model above is what the production deployment implements, and it is the section to walk through with any agency that asks about white-labeling.</div>`;
 }
+let SESS={},QUOTES=[];
+function carrierLogin(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  const isApi=p.conn==='api';
+  document.getElementById('sheet').innerHTML=`
+  <h3>${p.carrier} · ${isApi?'API pull':'portal session'}</h3>
+  <p class="p">${c.name} · ${p.line} · ${p.policy}</p>
+  ${isApi?`<div class="pol"><div class="r1"><span class="car">Connected by API</span><span class="chip g">live</span></div>
+    <div class="meta">Policy detail, declarations page and ID card are pulled directly. No login needed.</div></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn blue" onclick="pullPolicy('${p.id}')">Pull this client's policy</button>
+    <button class="btn ghost" onclick="closeModal()">Close</button></div>`:
+  `<div class="pol"><div class="r1"><span class="car">Step 1 · Credentials</span><span class="chip g">from vault</span></div>
+    <div class="meta">Agency login <span class="mono">cardinal&#64;agency…</span> · password <span class="mono">••••••••••</span><br>Filled by the LNL extension. The password never loads into the page and is never shown to the browser.</div></div>
+  <div class="pol"><div class="r1"><span class="car">Step 2 · Sign in</span><span class="chip ${SESS[p.carrier]?'g':'a'}">${SESS[p.carrier]?'session live':'awaiting you'}</span></div>
+    <div class="meta">${SESS[p.carrier]?'Portal session open in a separate window. You complete MFA, we never touch it.':'Opens the carrier portal in its own window with the agency login filled in. You complete MFA and any captcha.'}</div>
+    <div class="acts"><button onclick="openPortal('${p.id}')">${SESS[p.carrier]?'Bring portal forward':'Open carrier portal'}</button></div></div>
+  <div class="pol"><div class="r1"><span class="car">Step 3 · Pull the client</span><span class="chip n">one client</span></div>
+    <div class="meta">Pulls only ${c.name}'s record from ${p.carrier}, not the whole book. Fields are mapped into the standard structure on our side.</div>
+    <div class="acts"><button onclick="pullPolicy('${p.id}')" ${SESS[p.carrier]?'':'disabled style="opacity:.45"'}>Pull policy data</button></div></div>
+  <div class="pol"><div class="r1"><span class="car">Step 4 · Quote in the portal</span><span class="chip n">rating stays carrier-side</span></div>
+    <div class="meta">For markets with no API, rating happens in the portal. Start it here and the quote comes back into this record.</div>
+    <div class="acts"><button onclick="portalQuote('${p.id}')" ${SESS[p.carrier]?'':'disabled style="opacity:.45"'}>Start quote in portal</button></div></div>
+  <div class="note">Stored logins are not permission. Portal automation breaks when a carrier adds MFA, and some prohibit automated login outright. That is why the human completes sign-in and the system only reads what is on screen.</div>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" onclick="closeModal()">Close</button></div>`}`;
+  document.getElementById('modal').classList.add('open');
+}
+function openPortal(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  SESS[p.carrier]=true;
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Portal session opened for '+p.carrier+' · '+c.name});
+  toast(p.carrier+' portal opened in a new window');
+  carrierLogin(pid);
+}
+function pullPolicy(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Pulled '+p.policy+' from '+p.carrier});
+  document.getElementById('sheet').innerHTML=`<h3>${p.carrier} · pull result</h3>
+  <p class="p">${c.name} · ${p.policy}</p>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:12px">
+    <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">What the carrier returns</div>
+      <div class="mono" style="line-height:1.9;color:#4A5768">PolNbr: ${p.policy.replace(/-/g,'')}<br>EffDt: ${p.eff}<br>ExpDt: ${p.renewal}<br>AnnPrem: ${p.premium}<br>Insured: ${c.name.toUpperCase()}</div></div>
+    <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">Mapped to our record</div>
+      <div class="mono" style="line-height:1.9;color:#1D5BD6">policy_number: ${p.policy}<br>effective: ${p.eff}<br>expires: ${p.renewal}<br>premium: ${p.premium}<br>insured: ${c.name}</div></div>
+  </div>
+  <div class="note">Same field, different name at every carrier. That mapping is the reason one record can hold twelve markets.</div>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn blue" onclick="closeModal();toast('Record updated with carrier data')">Apply to record</button>
+  <button class="btn ghost" onclick="closeModal()">Close</button></div>`;
+}
+
+function portalQuote(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  const portalPrem=Math.round(p.premium*(0.93+Math.random()*0.16));
+  document.getElementById('sheet').innerHTML=`
+  <h3>${p.carrier} portal · quote</h3><p class="p">${c.name} · ${p.line} · rated inside ${p.carrier}, captured back into the CRM</p>
+  <div class="pol"><div class="r1"><span class="car">Portal rating complete</span><span class="chip g">${p.carrier}</span></div>
+    <div class="meta">Quoted premium <b style="color:#0D1622">${money(portalPrem)}/yr</b> · ${money(Math.round(portalPrem/12))}/mo · terms 12 months</div></div>
+  <div class="field"><label>Quoted premium from the portal</label><input id="capPrem" type="number" value="${portalPrem}"></div>
+  <div class="field"><label>Carrier quote number</label><input id="capRef" value="${p.carrier.slice(0,3).toUpperCase()}-${Math.floor(Math.random()*900000+100000)}"></div>
+  <div style="display:flex;gap:8px;margin-top:6px"><button class="btn blue" onclick="captureQuote('${p.id}')">Save quote to record</button>
+  <button class="btn ghost" onclick="closeModal()">Close</button></div>
+  <div class="note">The portal still does the rating for markets without API. What changes is where the result lives: one record, one timeline, one follow-up, instead of a number written on a sticky note.</div>`;
+}
+function captureQuote(pid){
+  const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
+  const prem=parseInt(document.getElementById('capPrem').value||p.premium,10);
+  const ref=document.getElementById('capRef').value;
+  QUOTES.push({client:c.id,carrier:p.carrier,line:p.line,premium:prem,ref,date:d2(TODAY)});
+  TASKS.unshift({id:'T'+Math.floor(Math.random()*9999),clientId:c.id,reason:'Quote '+ref+' at '+money(prem)+' sent, follow up in 2 days',owner:c.owner,due:'tomorrow',done:false,pri:'high'});
+  LOGS.unshift({t:new Date().toTimeString().slice(0,5),m:'Portal quote captured for '+c.name+' · '+p.carrier+' · '+money(prem)});
+  closeModal();renderTasks();renderDash();toast('Quote saved and a follow-up task created');
+}
+
 renderDash();renderClients();renderPolicies();renderTasks();renderCampaigns();renderGrowth();renderSecurity();
 document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 </script></body></html>
