@@ -128,8 +128,15 @@ tbody tr:hover{background:#FAFBFD}
       <h1 id="ttl">Dashboard</h1><span class="sub" id="sub">Book of business at a glance</span>
       <div class="spacer"></div>
       <div class="search"><span style="color:#8A96A6">⌕</span><input id="q" placeholder="Search clients, policies, carriers" oninput="quickSearch(this.value)"></div>
-      <div class="avatar">JC</div>
+      <select id="roleSel" onchange="setRole(this.value)" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;background:#fff">
+      <option value="owner">John · Owner</option>
+      <option value="Jacobo M.">Jacobo M. · Producer</option>
+      <option value="Dana R.">Dana R. · Producer</option>
+      <option value="Kayla B.">Kayla B. · CSR</option>
+    </select>
+    <div class="avatar" id="avatar">JC</div>
     </header>
+    <div id="roleBanner" style="display:none;background:#0D1622;color:#DCE4EE;padding:8px 20px;font-size:12px;display:none;align-items:center;gap:10px"></div>
     <section class="view on" id="v-dash">
       <div class="cards" id="kpis"></div>
       <div class="cols">
@@ -313,6 +320,7 @@ function go(v){
   document.getElementById('sub').textContent=NAV[v][1];
   if(v==='policies')renderPolicies();
   if(v==='tasks')renderTasks();
+  if(v==='dash'||v==='clients')renderAll();
 }
 function polsOf(id){return POLICIES.filter(p=>p.clientId===id)}
 function premOf(id){return polsOf(id).reduce((s,p)=>s+p.premium,0)}
@@ -368,6 +376,7 @@ function openClient(id){
   </div>
   <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px">Policies · ${money(premOf(id))} annual premium</div>
   ${pols}
+  ${mvpBlock(c)}
   <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Next actions</div>
   <div class="pol" style="background:#fff"><div class="meta">Renewal call ${ps[0]?ps[0].daysOut:0} days out · annual review scheduled · birthday ${c.dob}</div>
   <div class="acts"><button onclick="toast('Renewal task created')">Create renewal task</button><button onclick="toast('Review booked')">Book review</button></div></div>
@@ -538,6 +547,39 @@ function renderSecurity(){
   document.getElementById('secBody').innerHTML=rows.map(r=>`<div style="display:grid;grid-template-columns:200px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid #EEF1F6"><b style="font-size:12.5px">${r[0]}</b><span style="font-size:12.5px;color:#4A5768;line-height:1.6">${r[1]}</span></div>`).join('')
    +`<div class="note">This build is a simulation for the meeting. The security model above is what the production deployment implements, and it is the section to walk through with any agency that asks about white-labeling.</div>`;
 }
+function mvpBlock(c){
+  const i=parseInt(c.id.slice(1),10);
+  const veh=[['2019','FORD F-250 SUPER DUTY','1FT7W2BT'+i],['2018','CHEVROLET SUBURBAN','1GNSCJKC'+i],['2013','VOLKSWAGEN PASSAT','1VWCN7ZA'+i]];
+  const spouse=['Annika','Marcus','Elena','Priya'][i%4]+' '+c.name.split(' ')[1];
+  const kid=['Emma','Liam','Sofia'][i%3]+' '+c.name.split(' ')[1];
+  const carr=CAR[(i*5)%CAR.length][0];
+  const prior=['Root Insurance','Mercury','Progressive','Safeco'][i%4];
+  return `
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Household</div>
+  <table style="font-size:11.5px"><thead><tr><th>Name</th><th>DOB</th><th>Rel.</th><th>Contact</th></tr></thead><tbody>
+    <tr><td><b>${c.name}</b></td><td>${c.dob}/1992</td><td>Self</td><td>${c.phone}</td></tr>
+    <tr><td>${spouse}</td><td>04/07/1986</td><td>Spouse</td><td>(480) 508-7665</td></tr>
+    <tr><td>${kid}</td><td>09/02/2009</td><td>Daughter</td><td>—</td></tr>
+  </tbody></table>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Residence</div>
+  <div style="font-size:11.5px;color:#4A5768;line-height:1.6">${c.street}, ${c.city}, AZ ${c.zip} · built 2004 · 3 bed · 2 bath · tile roof</div>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Vehicles</div>
+  <table style="font-size:11.5px"><thead><tr><th>Year</th><th>Vehicle</th><th>VIN</th><th>Usage</th></tr></thead><tbody>
+    ${veh.map(v=>`<tr><td>${v[0]}</td><td>${v[1]}</td><td class="mono">${v[2]}</td><td>Commute</td></tr>`).join('')}
+  </tbody></table>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Coverages</div>
+  <div style="font-size:11.5px;color:#4A5768;line-height:1.7">Bodily injury 50/100 · UM/UIM 50/100 · Property damage $100k · Comprehensive $1,000 · Collision $1,000 · Rental $30/day · Towing included</div>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Prior carrier</div>
+  <div style="font-size:11.5px;color:#4A5768">${prior} · policy ${String(100000+i*137).slice(0,7)} · replaced at this renewal</div>
+  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 7px">Quotes and policies</div>
+  <table style="font-size:11.5px"><thead><tr><th>Carrier</th><th>Policy</th><th>Renewal</th><th>Term</th><th class="num">Premium</th><th>Pay plan</th></tr></thead><tbody>
+    <tr><td><b>${carr}</b></td><td class="mono">${String(900000+i*37)}</td><td>${polsOf(c.id)[0]?polsOf(c.id)[0].renewal:'—'}</td><td>6 mo</td><td class="num">${polsOf(c.id)[0]?money(polsOf(c.id)[0].premium):'—'}</td><td>Monthly EFT</td></tr>
+    <tr><td>${prior}</td><td class="mono">${String(700000+i*53)}</td><td>01-29-2027</td><td>12 mo</td><td class="num">${money(2400+i*90)}</td><td>Paid in full</td></tr>
+  </tbody></table>
+  <div class="acts" style="margin-top:9px"><button onclick="toast('EZLynx record opened in a new tab')">Show EZLynx URL</button>
+  <button onclick="toast('Prior carrier comparison started')">Compare coverages</button></div>`;
+}
+
 let SESS={},QUOTES=[];
 function carrierLogin(pid){
   const p=POLICIES.find(x=>x.id===pid), c=byId(p.clientId);
@@ -610,6 +652,51 @@ function captureQuote(pid){
   closeModal();renderTasks();renderDash();toast('Quote saved and a follow-up task created');
 }
 
-renderDash();renderClients();renderPolicies();renderTasks();renderCampaigns();renderGrowth();renderSecurity();
+let ROLE={key:'owner',name:'John',title:'Owner'};
+function setRole(v){
+  ROLE = v==='owner' ? {key:'owner',name:'John',title:'Owner'} : {key:'staff',name:v,title:(v==='Kayla B.'?'CSR':'Producer')};
+  document.getElementById('avatar').textContent = v==='owner'?'JC':v.split(' ').map(x=>x[0]).join('');
+  document.querySelectorAll('#nav button').forEach(b=>{
+    const restricted = ['sync','security'].includes(b.dataset.v);
+    b.style.display = (ROLE.key!=='owner' && restricted) ? 'none' : '';
+  });
+  if(ROLE.key!=='owner' && ['sync','security'].includes(currentView())) go('dash');
+  renderAll(); renderBanner();
+  toast(ROLE.key==='owner'?'Viewing the whole agency':'Viewing as '+ROLE.name+' · '+ROLE.title);
+}
+function currentView(){const on=document.querySelector('.view.on');return on?on.id.replace('v-',''):'dash'}
+function renderBanner(){
+  const b=document.getElementById('roleBanner');
+  if(ROLE.key==='owner'){b.style.display='none';return}
+  const mine=CLIENTS.filter(c=>c.owner===ROLE.name);
+  const ids=new Set(mine.map(c=>c.id));
+  const prem=POLICIES.filter(p=>ids.has(p.clientId)).reduce((s,p)=>s+p.premium,0);
+  const open=TASKS.filter(t=>!t.done&&t.owner===ROLE.name).length;
+  b.style.display='flex';
+  b.innerHTML=`<b>${ROLE.name} · ${ROLE.title}</b><span style="color:#8FA0B5">|</span>
+   <span>${mine.length} clients · ${money(prem)} premium · ${open} open tasks</span>
+   <span style="flex:1"></span>
+   <span style="color:#8FA0B5">Sees only their own book. No agency totals, no commissions, no other producers.</span>`;
+}
+function withRole(fn){
+  if(ROLE.key==='owner'){fn();return}
+  const c=CLIENTS,p=POLICIES,t=TASKS;
+  const mine=CLIENTS.filter(x=>x.owner===ROLE.name);
+  const ids=new Set(mine.map(x=>x.id));
+  CLIENTS=mine; POLICIES=POLICIES.filter(x=>ids.has(x.clientId)); TASKS=TASKS.filter(x=>x.owner===ROLE.name);
+  try{fn()}finally{CLIENTS=c;POLICIES=p;TASKS=t}
+}
+function renderAll(){
+  withRole(()=>{
+    renderDash();renderClients();renderPolicies();renderTasks();
+    if(ROLE.key==='owner'){renderGrowth();renderCampaigns()}
+    else{document.getElementById('growthKpis').innerHTML='';document.getElementById('chanBody').innerHTML=
+      '<tr><td colspan="7" style="color:var(--muted);padding:16px">Ad spend and agency cost per policy are owner-only.</td></tr>';
+      document.getElementById('flowBars').innerHTML='';document.getElementById('zipBars').innerHTML='';
+      document.getElementById('campBody').innerHTML='<tr><td colspan="7" style="color:var(--muted);padding:16px">Sequences are managed by the owner. Your enrolled leads still appear in Tasks.</td></tr>'}
+  });
+}
+
+renderDash();renderClients();renderPolicies();renderTasks();renderCampaigns();renderGrowth();renderSecurity();renderBanner();
 document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 </script></body></html>
